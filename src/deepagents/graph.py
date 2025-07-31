@@ -5,8 +5,11 @@ from deepagents.state import DeepAgentState
 from typing import Sequence, Union, Callable, Any, TypeVar, Type, Optional
 from langchain_core.tools import BaseTool
 from langchain_core.language_models import LanguageModelLike
-
+from ai_filesystem import FilesystemClient
 from langgraph.prebuilt import create_react_agent
+from dotenv import load_dotenv
+
+load_dotenv("../.env")
 
 StateSchema = TypeVar("StateSchema", bound=DeepAgentState)
 StateSchemaType = Type[StateSchema]
@@ -23,6 +26,8 @@ It is critical that you mark todos as completed as soon as you are done with a t
 
 - When doing web search, prefer to use the `task` tool in order to reduce context usage."""
 
+filesystem_client = FilesystemClient(filesystem="nick-test")
+filesystem_tools = filesystem_client.create_tools()
 
 def create_deep_agent(
     tools: Sequence[Union[BaseTool, Callable, dict[str, Any]]],
@@ -50,7 +55,7 @@ def create_deep_agent(
         state_schema: The schema of the deep agent. Should subclass from DeepAgentState
     """
     prompt = instructions + base_prompt
-    built_in_tools = [write_todos, write_file, read_file, ls, edit_file]
+    built_in_tools = [write_todos]
     if model is None:
         model = get_default_model()
     state_schema = state_schema or DeepAgentState
@@ -61,7 +66,7 @@ def create_deep_agent(
         model,
         state_schema
     )
-    all_tools = built_in_tools + list(tools) + [task_tool]
+    all_tools = built_in_tools + list(tools) + [task_tool] + filesystem_tools
     return create_react_agent(
         model,
         prompt=prompt,
