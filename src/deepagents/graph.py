@@ -4,6 +4,7 @@ from deepagents.tools import write_todos, write_file, read_file, ls, edit_file
 from deepagents.state import DeepAgentState
 from typing import Sequence, Union, Callable, Any, TypeVar, Type, Optional
 from langchain_core.tools import BaseTool
+from langchain_core.runnables import RunnableConfig
 from langchain_core.language_models import LanguageModelLike
 
 from langgraph.prebuilt import create_react_agent
@@ -30,6 +31,7 @@ def create_deep_agent(
     model: Optional[Union[str, LanguageModelLike]] = None,
     subagents: list[SubAgent] = None,
     state_schema: Optional[StateSchemaType] = None,
+    config_schema: Optional[Type] = None,
 ):
     """Create a deep agent.
 
@@ -67,4 +69,5 @@ def create_deep_agent(
         prompt=prompt,
         tools=all_tools,
         state_schema=state_schema,
+        config_schema=config_schema
     )
