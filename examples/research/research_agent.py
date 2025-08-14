@@ -2,7 +2,9 @@ import os
 from typing import Literal
 
 from tavily import TavilyClient
-
+from pydantic import BaseModel
+from langchain_core.runnables import RunnableConfig
+from typing import Optional
 
 from deepagents import create_deep_agent, SubAgent
 
@@ -156,10 +158,27 @@ You have access to a few tools.
 
 Use this to run an internet search for a given query. You can specify the number of results, the topic, and whether raw content should be included.
 """
-
 # Create the agent
 agent = create_deep_agent(
     [internet_search],
     research_instructions,
     subagents=[critique_sub_agent, research_sub_agent],
 ).with_config({"recursion_limit": 1000})
+
+
+class AgentConfig(BaseModel):
+    instructions: Optional[str] = ""
+    subagents: Optional[list[dict]] = []
+    tools: Optional[list[str]] = []
+
+
+
+def build_agent(agent_config: RunnableConfig):
+    """Build an agent from a given agent config"""
+    cfg = AgentConfig(**agent_config.get("configurable", {}))
+    return create_deep_agent(
+        [internet_search],
+        cfg.instructions or research_instructions,
+        subagents=cfg.subagents or [critique_sub_agent, research_sub_agent],
+        config_schema=AgentConfig,
+    ).with_config({"recursion_limit": 1000})
