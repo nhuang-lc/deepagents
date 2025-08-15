@@ -178,7 +178,7 @@ def build_agent(agent_config: RunnableConfig):
     cfg = AgentConfig(**agent_config.get("configurable", {}))
     return create_deep_agent(
         [internet_search],
-        cfg.instructions or research_instructions,
-        subagents=cfg.subagents or [critique_sub_agent, research_sub_agent],
+        cfg.instructions or "",
+        subagents=cfg.subagents or [],
         config_schema=AgentConfig,
     ).with_config({"recursion_limit": 1000})
