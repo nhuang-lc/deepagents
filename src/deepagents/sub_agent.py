@@ -7,6 +7,7 @@ from langchain_core.tools import tool, InjectedToolCallId
 from langchain_core.messages import ToolMessage
 from typing import Annotated, NotRequired
 from langgraph.types import Command
+import time
 
 from langgraph.prebuilt import InjectedState
 
@@ -33,7 +34,7 @@ def _create_task_tool(tools, instructions, subagents: list[SubAgent], model, sta
         else:
             _tools = tools
         agents[_agent["name"]] = create_react_agent(
-            model, prompt=_agent["prompt"], tools=_tools, state_schema=state_schema
+            model, prompt=_agent["prompt"], tools=_tools, state_schema=state_schema, checkpointer=False
         )
 
     other_agents_string = [
@@ -44,7 +45,7 @@ def _create_task_tool(tools, instructions, subagents: list[SubAgent], model, sta
         description=TASK_DESCRIPTION_PREFIX.format(other_agents=other_agents_string)
         + TASK_DESCRIPTION_SUFFIX
     )
-    def task(
+    async def task(
         description: str,
         subagent_type: str,
         state: Annotated[DeepAgentState, InjectedState],
@@ -54,7 +55,7 @@ def _create_task_tool(tools, instructions, subagents: list[SubAgent], model, sta
             return f"Error: invoked agent of type {subagent_type}, the only allowed types are {[f'`{k}`' for k in agents]}"
         sub_agent = agents[subagent_type]
         state["messages"] = [{"role": "user", "content": description}]
-        result = sub_agent.invoke(state)
+        result = await sub_agent.ainvoke(state)
         return Command(
             update={
                 "files": result.get("files", {}),
