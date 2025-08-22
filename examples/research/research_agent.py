@@ -7,7 +7,9 @@ from langchain_core.runnables import RunnableConfig
 from typing import Optional
 
 from deepagents import create_deep_agent, SubAgent
-
+ 
+# It's best practice to initialize the client once and reuse it.
+tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 # Search tool to use to do research
 def internet_search(
@@ -17,8 +19,7 @@ def internet_search(
     include_raw_content: bool = False,
 ):
     """Run a web search"""
-    tavily_async_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
-    search_docs = tavily_async_client.search(
+    search_docs = tavily_client.search(
         query,
         max_results=max_results,
         include_raw_content=include_raw_content,
@@ -31,13 +32,13 @@ sub_research_prompt = """You are a dedicated researcher. Your job is to conduct 
 
 Conduct thorough research and then reply to the user with a detailed answer to their question
 
-only your FINAL answer will be passed on to the user. They will have NO knowledge of anything expect your final message, so your final report should be your final message!"""
+only your FINAL answer will be passed on to the user. They will have NO knowledge of anything except your final message, so your final report should be your final message!"""
 
 research_sub_agent = {
     "name": "research-agent",
     "description": "Used to research more in depth questions. Only give this researcher one topic at a time. Do not pass multiple sub questions to this researcher. Instead, you should break down a large topic into the necessary components, and then call multiple research agents in parallel, one for each sub question.",
     "prompt": sub_research_prompt,
-    "tools": ["internet_search"]
+    "tools": ["internet_search"],
 }
 
 sub_critique_prompt = """You are a dedicated editor. You are being tasked to critique a report.
