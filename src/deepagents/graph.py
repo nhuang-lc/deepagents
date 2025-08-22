@@ -73,10 +73,6 @@ def create_deep_agent(
         prompt=prompt,
         tools=all_tools,
         state_schema=state_schema,
-<<<<<<< HEAD
-        config_schema=config_schema
-=======
         config_schema=config_schema,
         checkpointer=checkpointer,
->>>>>>> origin/master
     )
